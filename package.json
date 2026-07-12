@@ -1,9 +1,11 @@
 {
   "name": "captcha",
+  "type": "module",
   "scripts": {
     "build": "bun --bun dressed build",
     "checks": "tsc --noEmit && biome check --write",
     "dev": "bun run build -i && bun start",
+    "dist": "bun run build && bun build src/connection.ts --target=node --outfile=bundle.js --packages=external --production",
     "register": "bun run build -r && bun start",
     "start": "bun .dressed"
   },
@@ -12,6 +14,7 @@
     "@dressed/ws": "^0.5.0",
     "dressed": "^2.0.0",
     "drizzle-orm": "^0.45.2",
+    "pg": "^8.22.0",
     "redis": "^6.1.0"
   },
   "devDependencies": {

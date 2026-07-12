@@ -3,6 +3,13 @@ import { type CommandConfig, CommandOption, createRole, modifyOnboarding } from 
 import { cache, db } from "../db";
 import { stagesTable } from "../db/schema";
 
+const themes = {
+  light: [["Not a light", "❌"], ["Traffic light", "🚦"], "Traffic lights"],
+  scooter: [["Not a scooter", "❌"], ["Scooter", "🛵"], "Scooters"],
+  bus: [["Not a bus", "❌"], ["Bus", "🚌"], "Buses"],
+  check: [["Incorrect", "❌"], ["Correct", "✅"], "Checkmarks"],
+} as const;
+
 export const config = {
   description: "Initialize the CAPTCHA page within onboarding.",
   options: [
@@ -10,12 +17,7 @@ export const config = {
       type: "String",
       name: "theme",
       description: "The theme of the CAPTCHA question",
-      choices: [
-        { name: "Traffic lights", value: "light" },
-        { name: "Scooters", value: "scooter" },
-        { name: "Buses", value: "bus" },
-        { name: "Checkmarks", value: "check" },
-      ],
+      choices: Object.entries(themes).map(([k, v]) => ({ name: v[2], value: k })),
       required: true,
     }),
     CommandOption({
@@ -37,6 +39,10 @@ export const config = {
   default_member_permissions: ["Administrator"],
 } satisfies CommandConfig;
 
+function isOKTheme(theme: string): theme is keyof typeof themes {
+  return theme in themes;
+}
+
 export default async function (interaction: CommandInteraction<typeof config>) {
   const guild = interaction.guild_id;
   if (!guild) return;
@@ -48,6 +54,8 @@ export default async function (interaction: CommandInteraction<typeof config>) {
   }
 
   const { theme, total: numberTotal = 6, correct: numberCorrect = 3 } = interaction.options;
+
+  if (!isOKTheme(theme)) return interaction.editReply("That isn't a valid theme!");
 
   const { id: incorrect } = await createRole(guild, {
     color: 0xff4500,
@@ -61,21 +69,13 @@ export default async function (interaction: CommandInteraction<typeof config>) {
     ),
   ).then((roles) => roles.map(({ id }) => id))) as [string, string, string];
 
-  const themes = {
-    light: [["Not a light", "❌"], ["Traffic light", "🚦"], "traffic lights"],
-    scooter: [["Not a scooter", "❌"], ["Scooter", "🛵"], "scooters"],
-    bus: [["Not a bus", "❌"], ["Bus", "🚌"], "buses"],
-    check: [["Incorrect", "❌"], ["Correct", "✅"], "checkmarks"],
-  } as const;
-
   try {
     await modifyOnboarding(guild, {
       enabled: true,
       prompts: [
         {
           id: "1",
-          // @ts-expect-error
-          title: `Select all ${themes[theme][2]} (${themes[theme][1][1]})`,
+          title: `Select all ${themes[theme][2].toLowerCase()} (${themes[theme][1][1]})`,
           in_onboarding: true,
           required: true,
           options: Array.from({ length: numberTotal }, (_, i) => {
@@ -96,8 +96,8 @@ export default async function (interaction: CommandInteraction<typeof config>) {
   }
 
   return Promise.all([
-    interaction.editReply("Successfully setup the captcha page!"),
-    db.insert(stagesTable).values({ guild, incorrect, correct, theme: "light" }),
+    interaction.editReply("Successfully setup the CAPTCHA page!"),
+    db.insert(stagesTable).values({ guild, incorrect, correct, theme }),
     cache.listStages.clear(guild),
   ]);
 }
