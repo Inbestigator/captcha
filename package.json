@@ -1,0 +1,24 @@
+{
+  "name": "captcha",
+  "scripts": {
+    "build": "bun --bun dressed build",
+    "checks": "tsc --noEmit && biome check --write",
+    "dev": "bun run build -i && bun start",
+    "register": "bun run build -r && bun start",
+    "start": "bun .dressed"
+  },
+  "dependencies": {
+    "@dressed/react": "^2.0.0",
+    "@dressed/ws": "^0.5.0",
+    "dressed": "^2.0.0",
+    "drizzle-orm": "^0.45.2",
+    "redis": "^6.1.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.3",
+    "@dressed/framework": "^0.6.0",
+    "@types/node": "^26.1.1",
+    "drizzle-kit": "^0.31.10",
+    "typescript": "^7.0.2"
+  }
+}
