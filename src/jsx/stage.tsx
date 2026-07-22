@@ -7,6 +7,7 @@ import { stagesTable } from "../db/schema";
 import { showModal } from "../modal";
 import themes from "../themes.json";
 import { findPromptIndex, numberFormatter, transformEmojiKeys } from "../utils";
+import { useToast } from "./toasts";
 
 export default function Stage({
   guild,
@@ -17,6 +18,7 @@ export default function Stage({
   stage: typeof stagesTable.$inferSelect;
   onSuccess: CallableFunction;
 }) {
+  const toast = useToast();
   const deleteMutation = useMutation({ mutationFn: deleteStage, onSuccess: () => onSuccess() });
   return (
     <Button
@@ -40,7 +42,7 @@ This challenge has caught ${numberFormatter.format(Number(stage.fails))} user${s
               <Checkbox custom_id="delete" />
             </Label>
           </>,
-          (i) => i.getField("delete")?.checkbox() === true && deleteMutation.mutate({ guild, stage }),
+          (i) => i.getField("delete")?.checkbox() === true && deleteMutation.mutate({ guild, stage, toast }),
         );
       }}
       disabled={deleteMutation.isPending}
@@ -48,7 +50,15 @@ This challenge has caught ${numberFormatter.format(Number(stage.fails))} user${s
   );
 }
 
-async function deleteStage({ guild, stage }: { guild: string; stage: typeof stagesTable.$inferSelect }) {
+async function deleteStage({
+  guild,
+  stage,
+  toast,
+}: {
+  guild: string;
+  stage: typeof stagesTable.$inferSelect;
+  toast: ReturnType<typeof useToast>;
+}) {
   const onboarding = await getOnboarding(guild);
 
   const index = findPromptIndex(onboarding.prompts, stage);
@@ -57,10 +67,16 @@ async function deleteStage({ guild, stage }: { guild: string; stage: typeof stag
   }
 
   await Promise.allSettled([
-    modifyOnboarding(guild, { prompts: transformEmojiKeys(onboarding.prompts) }),
+    modifyOnboarding(guild, { prompts: transformEmojiKeys(onboarding.prompts) }).catch(() =>
+      toast({ type: "warn", message: "Couldn't remove the onboarding stage" }),
+    ),
     (async () => {
       for (const role of stage.correct.concat(stage.incorrect)) {
-        await deleteRole(guild, role);
+        try {
+          await deleteRole(guild, role);
+        } catch {
+          toast({ type: "warn", message: `There was a problem deleting one of the roles (<@&${role}>)` });
+        }
       }
     })(),
   ]);
