@@ -88,11 +88,11 @@ async function createStage({
   $createStatus.set({ createdIncorrect: false, correctCreated: 0, correctTotal, onboardingAdded: false });
 
   const roles = await Promise.allSettled([
-    createRole(guild, { color: 0xe74c3c, name: "WILL BAN IF APPLIED" }).then(
+    createRole(guild, { color: 0xe74c3c, name: "Ture Failed" }).then(
       (v) => ($createStatus.set({ ...$createStatus.get()!, createdIncorrect: true }), v),
     ),
     ...Array.from({ length: correctTotal }, () =>
-      createRole(guild, { color: 0x2ecc71, name: "CAPTCHA Verified" }).then((v) => {
+      createRole(guild, { color: 0x2ecc71, name: "Ture Verified" }).then((v) => {
         const status = $createStatus.get();
         $createStatus.set(status ? { ...status, correctCreated: status.correctCreated + 1 } : status);
         return v;
