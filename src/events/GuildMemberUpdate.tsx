@@ -1,4 +1,4 @@
-import { ActionRow, Button, createMessage } from "@dressed/react";
+import { createMessage } from "@dressed/react";
 import type { Event } from "@dressed/ws";
 import { GuildFeature, GuildMemberFlags } from "discord-api-types/v10";
 import { modifyMember, removeMember } from "dressed";
@@ -7,6 +7,7 @@ import { type ReactNode, Suspense } from "react";
 import { cache, db, redis } from "../db";
 import { stagesTable } from "../db/schema";
 import { Toast } from "../jsx/toasts";
+import { UpsellRow } from "../jsx/upsells";
 
 export const toCheck = new Set<`${string}:${string}`>();
 
@@ -64,11 +65,7 @@ export default async function (member: Event<"GuildMemberUpdate">) {
             )}
         </Suspense>{" "}
         for failing the CAPTCHA check during onboarding.
-        {process.env.INVITE_UPSELL && (
-          <ActionRow>
-            <Button emoji={{ name: "☑️" }} url={process.env.INVITE_UPSELL} label="Protect your server" />
-          </ActionRow>
-        )}
+        <UpsellRow types={["INVITE"]} />
       </>,
     ).catch(() => (dmDidError = true));
   }
