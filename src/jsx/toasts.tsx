@@ -28,7 +28,7 @@ function deleteToast($toasts: ToastAtom, value: string) {
 export function useToast() {
   const $toasts = useToastsContext();
   return (toast: Toast, duration = 5e3) => {
-    const value = `${toast.type}${toast.dismissable ? "?" : "."}${toast.message}`;
+    const value = `${toast.type}${toast.dismissable ? "?" : "."}${toast.message}${!toast.dismissable ? `\n-# Dismissed <t:${Math.ceil((Date.now() + duration) / 1000)}:R>` : ""}`;
     $toasts.set(new Set($toasts.get()).add(value));
     if (!toast.dismissable) {
       setTimeout(() => deleteToast($toasts, value), duration);
