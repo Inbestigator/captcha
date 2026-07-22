@@ -1,7 +1,6 @@
 import type { CommandInteraction } from "@dressed/react";
 import type { CommandConfig } from "dressed";
-import { atom } from "nanostores";
-import ConfigurationPage, { type CreateStatus } from "../jsx/config-page";
+import ConfigurationPage from "../jsx/config-page";
 
 export const config = {
   description: "Configure the CAPTCHA stages in your server",
@@ -11,8 +10,7 @@ export const config = {
 
 export default function (interaction: CommandInteraction) {
   if (!interaction.guild_id) return;
-  const $createStatus = atom<CreateStatus>({});
-  return interaction.reply(<ConfigurationPage guild={interaction.guild_id} $createStatus={$createStatus} />, {
+  return interaction.reply(<ConfigurationPage guild={interaction.guild_id} />, {
     ephemeral: true,
   });
 }

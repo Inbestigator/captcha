@@ -10,6 +10,7 @@ import { showModal } from "../modal";
 import themes from "../themes.json";
 import { cycleRatelimit, findPromptIndex, generateHardness, randomOption, transformEmojiKeys } from "../utils";
 import type { CreateStatus } from "./config-page";
+import { useToast } from "./toasts";
 
 export default function CreateButton({
   guild,
@@ -22,10 +23,11 @@ export default function CreateButton({
   onSuccess: CallableFunction;
   $createStatus: WritableAtom<CreateStatus>;
 }) {
+  const toast = useToast();
   const createMutation = useMutation({
     mutationFn: createStage,
     onSuccess: () => onSuccess(),
-    onError: (e) => $createStatus.set({ error: e.message }),
+    onError: (e) => ($createStatus.set(null), toast({ type: "warn", message: e.message }, 10e3)),
   });
   return (
     <Button
@@ -59,6 +61,7 @@ export default function CreateButton({
               guild,
               theme: i.getField("theme", true).radioGroup() as keyof typeof themes,
               $createStatus,
+              toast,
             }),
         );
       }}
@@ -73,11 +76,13 @@ async function createStage({
   guild,
   theme,
   $createStatus,
+  toast,
 }: {
   stages: (typeof stagesTable.$inferSelect)[];
   guild: string;
   theme: keyof typeof themes;
   $createStatus: WritableAtom<CreateStatus>;
+  toast: ReturnType<typeof useToast>;
 }) {
   await cycleRatelimit(`create:${guild}`, "creating stages");
   const correctTotal = themes[theme].correct.count;
@@ -86,14 +91,12 @@ async function createStage({
 
   const roles = await Promise.allSettled([
     createRole(guild, { color: 0xe74c3c, name: "WILL BAN IF APPLIED" }).then(
-      (v) => ($createStatus.set({ ...$createStatus.get(), createdIncorrect: true }), v),
+      (v) => ($createStatus.set({ ...$createStatus.get()!, createdIncorrect: true }), v),
     ),
     ...Array.from({ length: correctTotal }, () =>
       createRole(guild, { color: 0x2ecc71, name: "CAPTCHA Verified" }).then((v) => {
         const status = $createStatus.get();
-        $createStatus.set(
-          "correctCreated" in status ? { ...status, correctCreated: status.correctCreated + 1 } : status,
-        );
+        $createStatus.set(status ? { ...status, correctCreated: status.correctCreated + 1 } : status);
         return v;
       }),
     ),
@@ -108,6 +111,15 @@ async function createStage({
 
   try {
     const onboarding = await getOnboarding(guild);
+
+    if (!onboarding.enabled) {
+      toast({
+        type: "info",
+        message:
+          "Your server doesn't have [onboarding](https://support.discord.com/hc/en-us/articles/11074987197975) enabled yet. Challenges won't appear until you enable it in `Server Settings → Onboarding`",
+        dismissable: true,
+      });
+    }
 
     onboarding.prompts ??= [];
 
@@ -159,7 +171,7 @@ async function createStage({
     }
 
     await modifyOnboarding(guild, { prompts: transformEmojiKeys(onboarding.prompts) });
-    $createStatus.set({ ...$createStatus.get(), onboardingAdded: true, onboardingEnabled: onboarding.enabled });
+    $createStatus.set({ ...$createStatus.get()!, onboardingAdded: true });
   } catch {
     await Promise.allSettled(roles.map((r) => deleteRole(guild, r)));
     throw new Error("Couldn't add the onboarding stage, are you sure onboarding is enabled?");

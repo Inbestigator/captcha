@@ -1,30 +1,23 @@
 import { ActionRow, Button, Container, Section, Separator } from "@dressed/react";
 import { useStore } from "@nanostores/react";
 import { useQuery } from "@tanstack/react-query";
-import type { WritableAtom } from "nanostores";
+import { atom } from "nanostores";
+import { useRef } from "react";
 import { cache, redis } from "../db";
 import { numberFormatter } from "../utils";
 import CreateButton from "./create-button";
 import { Settings } from "./settings";
 import Stage from "./stage";
 
-export type CreateStatus =
-  | { onboardingEnabled?: boolean }
-  | { error: string }
-  | {
-      createdIncorrect: boolean;
-      correctCreated: number;
-      correctTotal: number;
-      onboardingAdded: boolean;
-    };
+export type CreateStatus = {
+  createdIncorrect: boolean;
+  correctCreated: number;
+  correctTotal: number;
+  onboardingAdded: boolean;
+} | null;
 
-export default function ConfigurationPage({
-  guild,
-  $createStatus,
-}: {
-  guild: string;
-  $createStatus: WritableAtom<CreateStatus>;
-}) {
+export default function ConfigurationPage({ guild }: { guild: string }) {
+  const { current: $createStatus } = useRef(atom<CreateStatus>(null));
   const stagesQuery = useQuery({ queryKey: ["stages", guild], queryFn: () => cache.listStages(guild) });
   const createStatus = useStore($createStatus);
   const numStages = stagesQuery.data?.length ?? 0;
@@ -42,18 +35,13 @@ export default function ConfigurationPage({
           <CreateButton
             guild={guild}
             stages={stagesQuery.data}
-            onSuccess={() =>
-              stagesQuery
-                .refetch()
-                // @ts-expect-error
-                .then(() => $createStatus.set({ onboardingEnabled: $createStatus.get().onboardingEnabled }))
-            }
+            onSuccess={() => stagesQuery.refetch().then(() => $createStatus.set(null))}
             $createStatus={$createStatus}
           />
         }
       >
         {stagesQuery.data &&
-          ("correctCreated" in createStatus ? (
+          (createStatus ? (
             <>
               {createStatus.createdIncorrect
                 ? `<:incorrect:${process.env.EMOJI_INCORRECT}>`
@@ -76,29 +64,6 @@ export default function ConfigurationPage({
         {stagesQuery.isPending && "-# Fetching stages"}
         {stagesQuery.isError && "-# Error fetching stages"}
       </Section>
-      {("error" in createStatus ||
-        ("onboardingEnabled" in createStatus && createStatus.onboardingEnabled === false)) && (
-        <ActionRow>
-          {"error" in createStatus && (
-            <Button
-              custom_id="Create stage error message"
-              emoji={{ name: "⚠️" }}
-              label={createStatus.error}
-              style="Danger"
-              disabled
-            />
-          )}
-          {"onboardingEnabled" in createStatus && (
-            <Button
-              custom_id="Create stage onboarding disabled"
-              emoji={{ name: "❗" }}
-              label="The challenges won't appear until you enable onboarding in Settings → Onboarding"
-              style="Secondary"
-              disabled
-            />
-          )}
-        </ActionRow>
-      )}
       <Separator />
       <ActionRow>
         <ChecksStat guild={guild} />
@@ -116,7 +81,7 @@ function ChecksStat({ guild }: { guild: string }) {
       emoji={{ name: "🛡️" }}
       label={
         checksQuery.isError
-          ? "⚠️"
+          ? "❓"
           : `${checksQuery.isPending ? "…" : numberFormatter.format(Number(checksQuery.data))} verifications`
       }
       style="Secondary"

@@ -6,6 +6,7 @@ import { inArray, sql } from "drizzle-orm";
 import { type ReactNode, Suspense } from "react";
 import { cache, db, redis } from "../db";
 import { stagesTable } from "../db/schema";
+import { Toast } from "../jsx/toasts";
 
 export const toCheck = new Set<`${string}:${string}`>();
 
@@ -104,28 +105,14 @@ export default async function (member: Event<"GuildMemberUpdate">) {
         <>
           🛡️ {member.user.username} {action === "flagged" ? "failed" : `was ${action} after failing`}{" "}
           {failedStages.length} stage
-          {failedStages.length === 1 ? "" : "s"}.
-          {(dmDidError || actionDidError) && (
-            <ActionRow>
-              {dmDidError && (
-                <Button
-                  custom_id="Error during dm"
-                  emoji={{ name: "⚠️" }}
-                  label="I attempted to notify them via DM, but there was an error in the process"
-                  style="Danger"
-                  disabled
-                />
-              )}
-              {actionDidError && (
-                <Button
-                  custom_id="Error during action"
-                  emoji={{ name: "⚠️" }}
-                  label={`There was an error in the process of completing the ${settings.actions[0]} action`}
-                  style="Danger"
-                  disabled
-                />
-              )}
-            </ActionRow>
+          {dmDidError && (
+            <Toast type="warn" message="I attempted to notify them via DM, but there was an error in the process" />
+          )}
+          {actionDidError && (
+            <Toast
+              type="warn"
+              message={`There was an error in the process of completing the ${settings.actions[0]} action`}
+            />
           )}
         </>,
       ),

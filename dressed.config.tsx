@@ -4,11 +4,19 @@ import { type ComponentInteraction, type ModalInteraction, patchInteraction } fr
 import { createCallbackHandler, pattern } from "@dressed/react/callbacks";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { PropsWithChildren } from "react";
+import { Toaster, ToastsProvider } from "./src/jsx/toasts";
 
 const queryClient = new QueryClient();
 
 function Providers({ children }: PropsWithChildren) {
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  return (
+    <ToastsProvider>
+      <QueryClientProvider client={queryClient}>
+        {children}
+        <Toaster />
+      </QueryClientProvider>
+    </ToastsProvider>
+  );
 }
 
 const callbackHandler = createCallbackHandler({
