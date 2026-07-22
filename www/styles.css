@@ -60,6 +60,10 @@ header {
   text-align: center;
 }
 
+.hero {
+  margin: auto;
+}
+
 .hero img {
   width: clamp(92px, 7vw, 140px);
   margin-bottom: 28px;
