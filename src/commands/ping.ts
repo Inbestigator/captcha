@@ -1,4 +1,5 @@
-import type { CommandConfig, CommandInteraction } from "dressed";
+import type { CommandInteraction } from "@dressed/react";
+import type { CommandConfig } from "dressed";
 
 export const config = {
   description: "Checks the API latency",

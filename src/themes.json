@@ -1,0 +1,87 @@
+{
+  "Traffic lights": {
+    "icon": "🚦",
+    "challenge": "Select all traffic lights",
+    "correct": { "count": 3, "options": [{ "emoji": "🚦", "label": "Traffic light" }] },
+    "incorrect": { "count": 5, "options": [{ "emoji": "❌", "label": "Not a light" }] }
+  },
+  "Scooters": {
+    "icon": "🛵",
+    "challenge": "Select all scooters",
+    "correct": {
+      "count": 3,
+      "options": [{ "emoji": "🛵", "label": "Scooter" }, { "emoji": "🛴", "label": "Scooter" }]
+    },
+    "incorrect": { "count": 5, "options": [{ "emoji": "❌", "label": "Not a scooter" }] }
+  },
+  "Buses": {
+    "icon": "🚌",
+    "challenge": "Select all buses",
+    "correct": {
+      "count": 3,
+      "options": [
+        { "emoji": "🚌", "label": "Bus" },
+        { "emoji": "🚎", "label": "Trolleybus" },
+        { "emoji": "🚍", "label": "Bus" },
+        { "emoji": "🚐", "label": "Minibus" }
+      ]
+    },
+    "incorrect": { "count": 5, "options": "" }
+  },
+  "Vehicles": {
+    "icon": "🚗",
+    "challenge": "Select all vehicles",
+    "correct": {
+      "count": 3,
+      "options": [
+        { "emoji": "🚗", "label": "Car" },
+        { "emoji": "🚘", "label": "Car" },
+        { "emoji": "🚕", "label": "Taxi" },
+        { "emoji": "🚖", "label": "Taxi" },
+        { "emoji": "🚙", "label": "SUV" },
+        { "emoji": "🛻", "label": "Truck" },
+        { "emoji": "🏎️", "label": "Race car" },
+        { "emoji": "🚓", "label": "Police car" },
+        { "emoji": "🚔", "label": "Police car" },
+        { "emoji": "🚑", "label": "Ambulance" },
+        { "emoji": "🚒", "label": "Firetruck" },
+        { "emoji": "🚌", "label": "Bus" },
+        { "emoji": "🚍", "label": "Bus" },
+        { "emoji": "🚎", "label": "Trolleybus" },
+        { "emoji": "🚐", "label": "Minibus" },
+        { "emoji": "🚚", "label": "Truck" },
+        { "emoji": "🚛", "label": "Truck" }
+      ]
+    },
+    "incorrect": {
+      "count": 5,
+      "options": "🏍️🛵🚲🛴🛹🛺🚂🚆🚇🚊🚉🚋🚃🚄🚅🚈🚝🚞🚟🚠🚡🚀🛸✈️🛫🛬🚁🚤🛥️⛴️🛳️🚢⛵🛶🚣"
+    }
+  },
+  "Checkmarks": {
+    "icon": "✅",
+    "challenge": "Select all checkmarks",
+    "correct": { "count": 3, "options": [{ "emoji": "✅", "label": "Correct" }] },
+    "incorrect": { "count": 5, "options": [{ "emoji": "❌", "label": "Incorrect" }] }
+  },
+  "Plane items": {
+    "icon": "✈️",
+    "challenge": "Select the item allowed on a plane",
+    "correct": {
+      "count": 1,
+      "options": [
+        { "emoji": "💻", "label": "Computer" },
+        { "emoji": "📱", "label": "Phone" },
+        { "emoji": "👜", "label": "Bag" }
+      ]
+    },
+    "incorrect": {
+      "count": 7,
+      "options": [
+        { "emoji": "🚲", "label": "Bike" },
+        { "emoji": "🚗", "label": "Car" },
+        { "emoji": "🎣", "label": "Fishing rod" }
+      ]
+    }
+  }
+}
