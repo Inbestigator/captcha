@@ -1,10 +1,10 @@
-import type { APIGuildOnboardingPrompt } from "discord-api-types/v10";
+import type { APIGuildOnboardingPrompt, APIGuildOnboardingPromptOption } from "discord-api-types/v10";
 import emojis from "emojibase-data/en/data.json";
 import shortcodes from "emojibase-data/en/shortcodes/github.json";
 import { shuffle } from "fast-shuffle";
 import { redis } from "./db";
 import type { stagesTable } from "./db/schema";
-import type themes from "./themes.json";
+import themes from "./themes.json";
 
 export function transformEmojiKeys(prompts: APIGuildOnboardingPrompt[]) {
   return prompts.map((p) => ({
@@ -25,6 +25,42 @@ export function findPromptIndex(prompts: APIGuildOnboardingPrompt[], stage: type
 }
 
 export const numberFormatter = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
+
+export const createPrompt = (theme: keyof typeof themes, incorrect: string, correct: string[]) => ({
+  id: "1",
+  title: themes[theme].challenge,
+  in_onboarding: true,
+  required: true,
+  single_select: false,
+  type: 0,
+  options: shuffle(
+    Array.from(
+      { length: themes[theme].correct.count + themes[theme].incorrect.count },
+      (_, i): APIGuildOnboardingPromptOption => {
+        const isCorrect = i < correct.length;
+        const { options } = themes[theme][isCorrect ? "correct" : "incorrect"];
+        const [{ emoji, label } = { emoji: "❓", label: "Unknown option" }] = Array.isArray(options)
+          ? shuffle(options)
+          : [randomOption(themes[theme].correct.options.join(""))];
+        return {
+          id: "1",
+          title: label,
+          description: "",
+          emoji: { id: null, name: emoji, animated: false },
+          role_ids: [isCorrect ? (correct[i] as string) : incorrect],
+          channel_ids: [],
+        };
+      },
+    ),
+  ).concat({
+    id: "1",
+    title: "CAPTCHA",
+    description: "",
+    emoji: { id: null, name: "☑️", animated: false },
+    role_ids: [incorrect],
+    channel_ids: [],
+  }),
+});
 
 /** @throws If limit exceeded */
 export async function cycleRatelimit(key: string, action: string, limit = 5, windowSec = 1800) {

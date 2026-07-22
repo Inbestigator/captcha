@@ -28,7 +28,7 @@ export function Settings({ guild }: { guild: string }) {
                 <RadioGroupOption
                   label="Randomize theme"
                   value="theme"
-                  description="This is the same as switching options but it also changes the challenge to another random one"
+                  description="This is the same as switching options but it also changes the challenge to another random one*"
                   default={settingsQuery.data?.refresh === "theme"}
                 />
               </RadioGroup>
@@ -71,6 +71,7 @@ export function Settings({ guild }: { guild: string }) {
                 required={false}
               />
             </Label>
+            -# \* Challenges are chosen randomly from a list of challenges with the same number of correct answers
           </>,
           (i) => {
             const actions = (i.getField("actions")?.checkboxGroup() as typeof settingsTable.$inferInsert.actions) ?? [];

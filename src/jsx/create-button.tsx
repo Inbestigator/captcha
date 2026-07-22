@@ -1,14 +1,12 @@
 import { Button, Label, RadioGroup, RadioGroupOption } from "@dressed/react";
 import { useMutation } from "@tanstack/react-query";
-import type { APIGuildOnboardingPromptOption } from "discord-api-types/v10";
 import { createRole, deleteRole, getOnboarding, modifyOnboarding } from "dressed";
-import { shuffle } from "fast-shuffle";
 import type { WritableAtom } from "nanostores";
 import { cache, db } from "../db";
 import { stagesTable } from "../db/schema";
 import { showModal } from "../modal";
 import themes from "../themes.json";
-import { cycleRatelimit, findPromptIndex, generateHardness, randomOption, transformEmojiKeys } from "../utils";
+import { createPrompt, cycleRatelimit, findPromptIndex, generateHardness, transformEmojiKeys } from "../utils";
 import type { CreateStatus } from "./config-page";
 import { useToast } from "./toasts";
 
@@ -126,41 +124,7 @@ async function createStage({
     const lastStage = stages.at(-1);
     const lastIndex = lastStage ? findPromptIndex(onboarding.prompts, lastStage) : -1;
 
-    onboarding.prompts.splice(lastIndex + 1, 0, {
-      id: "1",
-      title: themes[theme].challenge,
-      in_onboarding: true,
-      required: true,
-      single_select: false,
-      type: 0,
-      options: shuffle(
-        Array.from(
-          { length: themes[theme].correct.count + themes[theme].incorrect.count },
-          (_, i): APIGuildOnboardingPromptOption => {
-            const isCorrect = i < correct.length;
-            const { options } = themes[theme][isCorrect ? "correct" : "incorrect"];
-            const [{ emoji, label } = { emoji: "❓", label: "Unknown option" }] = Array.isArray(options)
-              ? shuffle(options)
-              : [randomOption(themes[theme].correct.options.join(""))];
-            return {
-              id: "1",
-              title: label,
-              description: "",
-              emoji: { id: null, name: emoji, animated: false },
-              role_ids: [isCorrect ? (correct[i] as string) : incorrect],
-              channel_ids: [],
-            };
-          },
-        ),
-      ).concat({
-        id: "1",
-        title: "CAPTCHA",
-        description: "",
-        emoji: { id: null, name: "☑️", animated: false },
-        role_ids: [incorrect],
-        channel_ids: [],
-      }),
-    });
+    onboarding.prompts.splice(lastIndex + 1, 0, createPrompt(theme, incorrect, correct));
 
     if (onboarding.prompts.length > 4) {
       await Promise.allSettled(roles.map((r) => deleteRole(guild, r)));

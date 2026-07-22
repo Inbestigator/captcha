@@ -4,8 +4,8 @@ import themes from "../themes.json";
 
 export const settingsTable = sqliteTable("settings", {
   id: text().primaryKey(),
-  refresh: text("refresh", { enum: ["options", "theme"] }), // Refresh the stage when a user fails it
-  actions: text("actions", { mode: "json" }).$type<("kick" | "timeout" | "dm")[]>().default([]).notNull(), // Refresh the stage when a user fails it
+  refresh: text("refresh", { enum: ["options", "theme"] }),
+  actions: text("actions", { mode: "json" }).$type<("kick" | "timeout" | "dm")[]>().default([]).notNull(),
   logs: text(),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .$defaultFn(() => new Date())

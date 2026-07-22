@@ -1,13 +1,17 @@
 import { createMessage } from "@dressed/react";
 import type { Event } from "@dressed/ws";
 import { GuildFeature, GuildMemberFlags } from "discord-api-types/v10";
-import { modifyMember, removeMember } from "dressed";
-import { inArray, sql } from "drizzle-orm";
+import { getOnboarding, modifyMember, modifyOnboarding, removeMember } from "dressed";
+import { eq, inArray, sql } from "drizzle-orm";
+import type { BatchItem } from "drizzle-orm/batch";
+import { shuffle } from "fast-shuffle";
 import { type ReactNode, Suspense } from "react";
 import { cache, db, redis } from "../db";
 import { stagesTable } from "../db/schema";
 import { Toast } from "../jsx/toasts";
 import { UpsellRow } from "../jsx/upsells";
+import themes from "../themes.json";
+import { createPrompt, cycleRatelimit, findPromptIndex, transformEmojiKeys } from "../utils";
 
 export const toCheck = new Set<`${string}:${string}`>();
 
@@ -96,6 +100,7 @@ export default async function (member: Event<"GuildMemberUpdate">) {
           failedStages.map((s) => s.id),
         ),
       ),
+    settings?.refresh && refreshStages(member.guild_id, failedStages, settings.refresh === "theme"),
     settings?.logs &&
       createMessage(
         settings.logs,
@@ -119,4 +124,41 @@ export default async function (member: Event<"GuildMemberUpdate">) {
 async function sendInDM(userId: string, children: ReactNode) {
   const dm = await cache.createDM(userId);
   await createMessage(dm.id, children);
+}
+
+export async function refreshStages(guild: string, stages: (typeof stagesTable.$inferSelect)[], rotateTheme: boolean) {
+  try {
+    await cycleRatelimit(`refresh:${guild}`, "refreshing options", 1, 3600);
+  } catch {
+    return;
+  }
+  const onboarding = await getOnboarding(guild);
+  const queries: BatchItem<"sqlite">[] = [];
+
+  for (const stage of stages) {
+    const index = findPromptIndex(onboarding.prompts, stage);
+    if (index === -1) continue;
+
+    const [newTheme] = rotateTheme
+      ? shuffle(
+          (Object.keys(themes) as (keyof typeof themes)[]).filter(
+            (t) => themes[t].correct.count === themes[stage.theme].correct.count,
+          ),
+        )
+      : [stage.theme];
+
+    if (!newTheme) continue;
+
+    onboarding.prompts.splice(index, 1, createPrompt(newTheme, stage.incorrect, stage.correct));
+
+    if (rotateTheme) {
+      queries.push(db.update(stagesTable).set({ theme: newTheme }).where(eq(stagesTable.id, stage.id)));
+    }
+  }
+
+  await Promise.allSettled([
+    modifyOnboarding(guild, { prompts: transformEmojiKeys(onboarding.prompts) }),
+    rotateTheme && queries.length ? db.batch(queries as never) : undefined,
+    rotateTheme ? cache.listStages.clear(guild) : undefined,
+  ]);
 }
