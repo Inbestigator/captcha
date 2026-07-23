@@ -1,6 +1,9 @@
 {
   "name": "captcha",
   "type": "module",
+  "workspaces": [
+    "www"
+  ],
   "scripts": {
     "build": "bun --bun dressed build",
     "checks": "tsc --noEmit && biome check --write",

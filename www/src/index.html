@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ture: Spot bots before they say join</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./stats.css" />
+  </head>
+  <body>
+    <header>
+      <div class="logo">
+        <img alt="Ture logo, checkmark icon" src="./logo.svg" />
+        Ture
+      </div>
+    </header>
+    <section class="hero">
+      <h1>
+        Spot bots<br />
+        <span>before they join</span>
+      </h1>
+      <p class="description">Verifies incoming members with simple emoji challenges.</p>
+      <div class="buttons">
+        <a
+          class="button primary"
+          href="https://discord.com/oauth2/authorize?client_id=1525703681587155064"
+          target="_blank"
+          >Add Ture</a
+        >
+        <a class="button secondary" href="https://github.com/Inbestigator/captcha" target="_blank"
+          >See the source</a
+        >
+      </div>
+      <script type="module" src="./index.ts"></script>
+    </section>
+    <section class="stats">
+      <div class="stat-card">
+        <img
+          src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/2611.svg"
+          alt="Checkmark"
+        />
+        <div>
+          <strong class="loading">…</strong>
+          <span>Users verified</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <img
+          src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f916.svg"
+          alt="Robot"
+        />
+        <div>
+          <strong class="loading">…</strong>
+          <span>Bots flagged</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <img
+          src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f6a6.svg"
+          alt="Traffic Light"
+        />
+        <div>
+          <strong class="loading">…</strong>
+          <span>Challenges</span>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

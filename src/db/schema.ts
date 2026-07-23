@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
-import themes from "../themes.json";
+import themes from "../themes.json" with { type: "json" };
 
 export const settingsTable = sqliteTable("settings", {
   id: text().primaryKey(),
