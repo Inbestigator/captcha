@@ -90,6 +90,7 @@ export function Settings({ guild }: { guild: string }) {
                   set: { refresh: values.refresh, actions: values.actions, logs: values.logs },
                 }),
               cache.getSettings.clear(guild),
+              settingsQuery.refetch(),
             ]);
           },
         )
