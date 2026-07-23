@@ -19,7 +19,11 @@ export default function Stage({
   onSuccess: CallableFunction;
 }) {
   const toast = useToast();
-  const deleteMutation = useMutation({ mutationFn: deleteStage, onSuccess: () => onSuccess() });
+  const deleteMutation = useMutation({
+    mutationFn: deleteStage,
+    onSuccess: () => onSuccess(),
+    onError: (e) => toast({ type: "warn", message: e.message }, 10e3),
+  });
   return (
     <Button
       emoji={{ name: themes[stage.theme].icon }}

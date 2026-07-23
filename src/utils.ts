@@ -72,7 +72,7 @@ export async function cycleRatelimit(key: string, action: string, limit = 5, win
   }
 
   if (count > limit) {
-    throw new Error(`You're ${action} too quickly, try again later.`);
+    throw new Error(`You're ${action} too quickly, you can try again later.`);
   }
 }
 

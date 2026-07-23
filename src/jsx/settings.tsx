@@ -1,17 +1,38 @@
 import { Button, Checkbox, CheckboxGroup, Label, RadioGroup, RadioGroupOption, SelectMenu } from "@dressed/react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { SelectMenuDefaultValueType } from "discord-api-types/v10";
 import { cache, db } from "../db";
 import { settingsTable } from "../db/schema";
 import { showModal } from "../modal";
+import { cycleRatelimit } from "../utils";
+import { useToast } from "./toasts";
 
 export function Settings({ guild }: { guild: string }) {
+  const toast = useToast();
   const settingsQuery = useQuery({ queryKey: ["settings", guild], queryFn: () => cache.getSettings(guild) });
+  const settingsMutation = useMutation({
+    async mutationFn(values: typeof settingsTable.$inferInsert) {
+      await cycleRatelimit(`settings:${guild}`, "updating settings", 10);
+      return Promise.all([
+        db
+          .insert(settingsTable)
+          .values(values)
+          .onConflictDoUpdate({
+            target: settingsTable.id,
+            set: { refresh: values.refresh, actions: values.actions, logs: values.logs },
+          })
+          .then(() => settingsQuery.refetch()),
+        cache.getSettings.clear(guild),
+      ]);
+    },
+    onSuccess: () => settingsQuery.refetch(),
+    onError: (e) => toast({ type: "warn", message: e.message }, 10e3),
+  });
   return (
     <Button
       emoji={{ name: "⚙️" }}
       style="Secondary"
-      disabled={settingsQuery.isPending}
+      disabled={settingsQuery.isPending || settingsMutation.isPending}
       onClick={(i) =>
         settingsQuery.isSuccess &&
         showModal(
@@ -75,23 +96,12 @@ export function Settings({ guild }: { guild: string }) {
           </>,
           (i) => {
             const actions = (i.getField("actions")?.checkboxGroup() as typeof settingsTable.$inferInsert.actions) ?? [];
-            const values = {
+            settingsMutation.mutate({
               id: guild,
               refresh: i.getField("refresh")?.radioGroup() as typeof settingsTable.$inferInsert.refresh,
               actions: actions.includes("kick") && actions.includes("timeout") ? ["kick"] : actions,
               logs: i.getField("logs")?.channelSelect()[0]?.id,
-            } satisfies typeof settingsTable.$inferInsert;
-            Promise.all([
-              db
-                .insert(settingsTable)
-                .values(values)
-                .onConflictDoUpdate({
-                  target: settingsTable.id,
-                  set: { refresh: values.refresh, actions: values.actions, logs: values.logs },
-                }),
-              cache.getSettings.clear(guild),
-              settingsQuery.refetch(),
-            ]);
+            });
           },
         )
       }
