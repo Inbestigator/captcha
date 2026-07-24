@@ -2,21 +2,24 @@
   "Traffic lights": {
     "icon": "🚦",
     "challenge": "Select all traffic lights",
+    "strength": "Moderate",
     "correct": { "count": 3, "options": [{ "emoji": "🚦", "label": "Traffic light" }] },
-    "incorrect": { "count": 5, "options": [{ "emoji": "❌", "label": "Not a light" }] }
+    "incorrect": { "count": 5, "options": "" }
   },
   "Scooters": {
     "icon": "🛵",
     "challenge": "Select all scooters",
+    "strength": "Moderate",
     "correct": {
       "count": 3,
       "options": [{ "emoji": "🛵", "label": "Scooter" }, { "emoji": "🛴", "label": "Scooter" }]
     },
-    "incorrect": { "count": 5, "options": [{ "emoji": "❌", "label": "Not a scooter" }] }
+    "incorrect": { "count": 5, "options": "" }
   },
   "Buses": {
     "icon": "🚌",
     "challenge": "Select all buses",
+    "strength": "Moderate",
     "correct": {
       "count": 3,
       "options": [
@@ -31,6 +34,7 @@
   "Vehicles": {
     "icon": "🚗",
     "challenge": "Select all vehicles",
+    "strength": "Strong",
     "correct": {
       "count": 3,
       "options": [
@@ -61,12 +65,29 @@
   "Checkmarks": {
     "icon": "✅",
     "challenge": "Select all checkmarks",
+    "strength": "Weak",
     "correct": { "count": 3, "options": [{ "emoji": "✅", "label": "Correct" }] },
     "incorrect": { "count": 5, "options": [{ "emoji": "❌", "label": "Incorrect" }] }
+  },
+  "Signs": {
+    "icon": "🛑",
+    "challenge": "Select all {{correct}} signs",
+    "strength": "Strong",
+    "options": {
+      "stop": "🛑",
+      "no entry": "⛔",
+      "no smoking": "🚭",
+      "warning": "⚠️",
+      "children crossing": "🚸",
+      "bathroom": "🚻"
+    },
+    "correct": { "count": 2, "options": [] },
+    "incorrect": { "count": 6, "options": [] }
   },
   "Plane items": {
     "icon": "✈️",
     "challenge": "Select the item allowed on a plane",
+    "strength": "Strong",
     "correct": {
       "count": 1,
       "options": [
@@ -80,7 +101,16 @@
       "options": [
         { "emoji": "🚲", "label": "Bike" },
         { "emoji": "🚗", "label": "Car" },
-        { "emoji": "🎣", "label": "Fishing rod" }
+        { "emoji": "🎣", "label": "Fishing rod" },
+        { "emoji": "🚐", "label": "Minibus" },
+        { "emoji": "🐘", "label": "Elephant" },
+        { "emoji": "🏠", "label": "House" },
+        { "emoji": "🚜", "label": "Tractor" },
+        { "emoji": "🛋️", "label": "Sofa" },
+        { "emoji": "🦒", "label": "Giraffe" },
+        { "emoji": "🚢", "label": "Ship" },
+        { "emoji": "🛵", "label": "Scooter" },
+        { "emoji": "🏰", "label": "Castle" }
       ]
     }
   }

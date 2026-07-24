@@ -7,7 +7,7 @@ import { cache, db } from "../db";
 import { stagesTable } from "../db/schema";
 import { showModal } from "../modal";
 import themes from "../themes.json";
-import { createPrompt, cycleRatelimit, findPromptIndex, generateHardness, transformEmojiKeys } from "../utils";
+import { createPrompt, cycleRatelimit, findPromptIndex, transformEmojiKeys } from "../utils";
 import type { CreateStatus } from "./config-page";
 import { useToast } from "./toasts";
 
@@ -54,7 +54,7 @@ export default function CreateButton({
                     key={k}
                     label={k}
                     value={k}
-                    description={`${generateHardness(v)} - ${v.correct.count} correct, ${v.incorrect.count} incorrect options`}
+                    description={`${v.strength} - ${v.correct.count} correct, ${v.incorrect.count} incorrect options`}
                   />
                 ))}
               </RadioGroup>
@@ -134,7 +134,7 @@ async function createStage({
     const lastStage = stages.at(-1);
     const lastIndex = lastStage ? findPromptIndex(onboarding.prompts, lastStage) : -1;
 
-    onboarding.prompts.splice(lastIndex + 1, 0, createPrompt(theme, incorrect, correct));
+    onboarding.prompts.splice(lastIndex + 1, 0, createPrompt(themes[theme], incorrect, correct));
 
     if (onboarding.prompts.length > 4) {
       await Promise.allSettled(roles.map((r) => deleteRole(guild, r)));

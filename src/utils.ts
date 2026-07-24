@@ -4,7 +4,7 @@ import shortcodes from "emojibase-data/en/shortcodes/github.json";
 import { shuffle } from "fast-shuffle";
 import { redis } from "./db";
 import type { stagesTable } from "./db/schema";
-import themes from "./themes.json";
+import type themes from "./themes.json";
 
 export function transformEmojiKeys(prompts: APIGuildOnboardingPrompt[]) {
   return prompts.map((p) => ({
@@ -26,22 +26,30 @@ export function findPromptIndex(prompts: APIGuildOnboardingPrompt[], stage: type
 
 export const numberFormatter = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
 
-export const createPrompt = (theme: keyof typeof themes, incorrect: string, correct: string[]) => ({
-  id: "1",
-  title: themes[theme].challenge,
-  in_onboarding: true,
-  required: true,
-  single_select: false,
-  type: 0,
-  options: shuffle(
-    Array.from(
-      { length: themes[theme].correct.count + themes[theme].incorrect.count },
-      (_, i): APIGuildOnboardingPromptOption => {
+export function createPrompt(theme: (typeof themes)[keyof typeof themes], incorrect: string, correct: string[]) {
+  if ("options" in theme) {
+    const [correctOption, ...incorrectOptions] = shuffle(Object.entries(theme.options));
+    if (!correctOption) throw new Error("Couldn't determine a correct option");
+    theme.challenge = theme.challenge.replaceAll("{{correct}}", correctOption[0]);
+    // @ts-expect-error
+    theme.correct.options = [{ emoji: correctOption[1], label: " " }];
+    // @ts-expect-error
+    theme.incorrect.options = incorrectOptions.map(([_, e]) => ({ emoji: e, label: " " }));
+  }
+  return {
+    id: "1",
+    title: theme.challenge,
+    in_onboarding: true,
+    required: true,
+    single_select: false,
+    type: 0,
+    options: shuffle(
+      Array.from({ length: theme.correct.count + theme.incorrect.count }, (_, i): APIGuildOnboardingPromptOption => {
         const isCorrect = i < correct.length;
-        const { options } = themes[theme][isCorrect ? "correct" : "incorrect"];
+        const { options } = theme[isCorrect ? "correct" : "incorrect"];
         const [{ emoji, label } = { emoji: "❓", label: "Unknown option" }] = Array.isArray(options)
           ? shuffle(options)
-          : [randomOption(themes[theme].correct.options.join(""))];
+          : [randomOption(theme.correct.options.join(""))];
         return {
           id: "1",
           title: label,
@@ -50,17 +58,17 @@ export const createPrompt = (theme: keyof typeof themes, incorrect: string, corr
           role_ids: [isCorrect ? (correct[i] as string) : incorrect],
           channel_ids: [],
         };
-      },
-    ),
-  ).concat({
-    id: "1",
-    title: "CAPTCHA",
-    description: "",
-    emoji: { id: null, name: "☑️", animated: false },
-    role_ids: [incorrect],
-    channel_ids: [],
-  }),
-});
+      }),
+    ).concat({
+      id: "1",
+      title: "CAPTCHA",
+      description: "",
+      emoji: { id: null, name: "☑️", animated: false },
+      role_ids: [incorrect],
+      channel_ids: [],
+    }),
+  };
+}
 
 /** @throws If limit exceeded */
 export async function cycleRatelimit(key: string, action: string, limit = 5, windowSec = 1800) {
@@ -74,22 +82,6 @@ export async function cycleRatelimit(key: string, action: string, limit = 5, win
   if (count > limit) {
     throw new Error(`You're ${action} too quickly, you can try again later.`);
   }
-}
-
-export function generateHardness(theme: (typeof themes)[keyof typeof themes]) {
-  const correctOptions = theme.correct.options.length;
-  const incorrectOptions = theme.incorrect.options.length;
-  const correctCount = theme.correct.count;
-
-  if ((correctCount === 1 && incorrectOptions >= 3) || correctOptions >= 5) {
-    return "Strong";
-  }
-
-  if (correctOptions === 1) {
-    return "Weak";
-  }
-
-  return "Moderate";
 }
 
 export function randomOption(exclude = "") {

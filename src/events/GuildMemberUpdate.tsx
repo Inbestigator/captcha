@@ -150,7 +150,7 @@ export async function refreshStages(guild: string, stages: (typeof stagesTable.$
 
     if (!newTheme) continue;
 
-    onboarding.prompts.splice(index, 1, createPrompt(newTheme, stage.incorrect, stage.correct));
+    onboarding.prompts.splice(index, 1, createPrompt(themes[newTheme], stage.incorrect, stage.correct));
 
     if (rotateTheme) {
       queries.push(db.update(stagesTable).set({ theme: newTheme }).where(eq(stagesTable.id, stage.id)));
