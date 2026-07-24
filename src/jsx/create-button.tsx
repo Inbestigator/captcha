@@ -1,5 +1,6 @@
 import { Button, Label, RadioGroup, RadioGroupOption } from "@dressed/react";
 import { useMutation } from "@tanstack/react-query";
+import { GuildFeature } from "discord-api-types/v10";
 import { createRole, deleteRole, getOnboarding, modifyOnboarding } from "dressed";
 import type { WritableAtom } from "nanostores";
 import { cache, db } from "../db";
@@ -33,6 +34,15 @@ export default function CreateButton({
       label={createMutation.isPending ? "Creating" : "Create"}
       onClick={(i) => {
         if (!stages) return;
+        if (!i.guild?.features.includes(GuildFeature.Community)) {
+          toast({
+            type: "warn",
+            message:
+              "Your server doesn't seem to be a [Community](https://support.discord.com/hc/en-us/articles/14078261239831) yet. You cannot create challenges until you enable it in `Server Settings → Enable Community`\n-# Make sure to setup `Server Settings → Onboarding` afterwards",
+            dismissable: true,
+          });
+          return;
+        }
         return showModal(
           i,
           "Create stage",
