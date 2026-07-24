@@ -18,6 +18,7 @@ export const toCheck = new Set<`${string}:${string}`>();
 export default async function (member: Event<"GuildMemberUpdate">) {
   if (
     member.user.bot ||
+    !member.roles.length ||
     !member.flags ||
     (member.flags & GuildMemberFlags.CompletedOnboarding) === 0 ||
     (member.flags & GuildMemberFlags.StartedOnboarding) === 0 ||

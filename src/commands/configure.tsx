@@ -4,7 +4,7 @@ import ConfigurationPage from "../jsx/config-page";
 
 export const config = {
   description: "Configure the CAPTCHA stages in your server",
-  default_member_permissions: ["KickMembers", "ManageGuild", "ManageRoles", "ModerateMembers"],
+  default_member_permissions: ["ManageGuild", "ManageRoles", "KickMembers", "ModerateMembers"],
   contexts: ["Guild"],
 } satisfies CommandConfig;
 
