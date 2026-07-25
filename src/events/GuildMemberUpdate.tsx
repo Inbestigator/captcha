@@ -35,12 +35,11 @@ export default async function (member: Event<"GuildMemberUpdate">) {
   const failedStages = stages.filter(
     (stage) => member.roles.includes(stage.incorrect) || stage.correct.some((c) => !member.roles.includes(c)),
   );
+  const incrPromise = redis.incr(`check:${member.guild_id}`);
+  const filteredRoles = member.roles.filter((id) => !stageRoles.includes(id));
 
   if (failedStages.length === 0) {
-    await Promise.allSettled([
-      modifyMember(member.guild_id, member.user.id, { roles: member.roles.filter((id) => !stageRoles.includes(id)) }),
-      redis.incr(`check:${member.guild_id}`),
-    ]);
+    await Promise.allSettled([modifyMember(member.guild_id, member.user.id, { roles: filteredRoles }), incrPromise]);
     return;
   }
 
@@ -81,7 +80,7 @@ export default async function (member: Event<"GuildMemberUpdate">) {
     await (action === "kicked"
       ? removeMember(member.guild_id, member.user.id)
       : modifyMember(member.guild_id, member.user.id, {
-          roles: member.roles.filter((id) => !stageRoles.includes(id)),
+          roles: filteredRoles,
           communication_disabled_until: new Date(Date.now() + 18e5).toISOString(),
         })
     ).catch(() => {
@@ -91,7 +90,7 @@ export default async function (member: Event<"GuildMemberUpdate">) {
   }
 
   await Promise.allSettled([
-    redis.incr(`check:${member.guild_id}`),
+    incrPromise,
     db
       .update(stagesTable)
       .set({ fails: sql`${stagesTable.fails} + 1` })

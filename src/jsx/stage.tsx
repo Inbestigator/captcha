@@ -22,7 +22,7 @@ export default function Stage({
   const deleteMutation = useMutation({
     mutationFn: deleteStage,
     onSuccess: () => onSuccess(),
-    onError: (e) => toast({ type: "warn", message: e.message }, 10e3),
+    onError: (e) => toast({ type: "warn", message: e.message }),
   });
   return (
     <Button

@@ -26,7 +26,7 @@ export default function CreateButton({
   const createMutation = useMutation({
     mutationFn: createStage,
     onSuccess: () => onSuccess(),
-    onError: (e) => ($createStatus.set(null), toast({ type: "warn", message: e.message }, 10e3)),
+    onError: (e) => ($createStatus.set(null), toast({ type: "warn", message: e.message })),
   });
   return (
     <Button
