@@ -12,12 +12,17 @@
     "register": "bun run build -r && bun .dressed",
     "start": "bun src/connection.ts"
   },
+  "overrides": {
+    "discord-api-types": "^0.38.51"
+  },
   "dependencies": {
+    "@dressed/matcher": "^1.4.0",
     "@dressed/react": "^2.0.0",
     "@dressed/ws": "^0.5.0",
     "@libsql/client": "^0.17.4",
     "@nanostores/react": "^1.1.0",
     "@tanstack/react-query": "^5.101.4",
+    "discord-api-types": "^0.38.51",
     "dressed": "^2.0.0",
     "drizzle-orm": "^0.45.2",
     "emojibase-data": "^17.0.0",
@@ -29,6 +34,7 @@
     "@biomejs/biome": "^2.5.5",
     "@dressed/framework": "^0.6.0",
     "@types/bun": "^1.3.14",
+    "@types/react": "^19.2.17",
     "drizzle-kit": "^0.31.10",
     "typescript": "^7.0.2"
   }

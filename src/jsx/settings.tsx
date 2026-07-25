@@ -102,7 +102,7 @@ export function Settings({ guild }: { guild: string }) {
               kick: [PermissionFlagsBits.KickMembers, "Kick Members"],
             } as const;
 
-            if (action && action in actionPerms) {
+            if (action) {
               validatePerms(
                 { you: i.member!.permissions, I: i.app_permissions },
                 `the ${action} action`,
@@ -114,8 +114,7 @@ export function Settings({ guild }: { guild: string }) {
 
             if (logChannel) {
               validatePerms(
-                // @ts-expect-error Type not implemented yet
-                { you: logChannel.permissions, I: logChannel.app_permissions },
+                { you: logChannel.permissions, I: logChannel.app_permissions ?? "" },
                 `the log channel (<#${logChannel?.id}>)`,
                 [
                   [PermissionFlagsBits.ViewChannel, "View Channel"],
