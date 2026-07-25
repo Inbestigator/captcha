@@ -105,8 +105,9 @@ export default async function (member: Event<"GuildMemberUpdate">) {
       createMessage(
         settings.logs,
         <>
-          🛡️ {member.user.username} {action === "flagged" ? "failed" : `was ${action} after failing`}{" "}
-          {failedStages.length} stage
+          🛡️ {member.user.username} (&lt;@{member.user.id}&gt;){" "}
+          {action === "flagged" ? "failed" : `was ${action} after failing`} {failedStages.length} stage
+          {failedStages.length !== 1 && "s"}
           {dmDidError && (
             <Toast type="warn" message="I attempted to notify them via DM, but there was an error in the process" />
           )}
