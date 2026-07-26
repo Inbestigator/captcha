@@ -26,21 +26,22 @@ export function findPromptIndex(prompts: APIGuildOnboardingPrompt[], stage: type
 
 export const numberFormatter = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
 
-export function createPrompt(theme: (typeof themes)[keyof typeof themes], incorrect: string, correct: string[]) {
+export function createPrompt({ ...theme }: (typeof themes)[keyof typeof themes], incorrect: string, correct: string[]) {
   if ("options" in theme) {
     const [correctOption, ...incorrectOptions] = shuffle(Object.entries(theme.options));
     if (!correctOption) throw new Error("Couldn't determine a correct option");
     theme.challenge = theme.challenge.replaceAll("{{correct}}", correctOption[0]);
+    const shuffled = shuffle(correctOption[1]);
     // @ts-expect-error
     theme.correct.options = Array.from({ length: theme.correct.count }, (_, i) => {
-      const emoji = correctOption[1][i] ?? shuffle(correctOption[1])[0];
+      const emoji = shuffled[i % shuffled.length];
       const incorrectIndex = theme.incorrect.options.findIndex((o) => o.emoji === emoji);
       if (incorrectIndex > -1) theme.incorrect.options.splice(incorrectIndex, 1);
       return { emoji, label: " " };
     });
     if (Array.isArray(theme.incorrect.options) && theme.incorrect.options.length === 0) {
       // @ts-expect-error
-      theme.incorrect.options = incorrectOptions.map(([_, e]) => ({ emoji: e, label: " " }));
+      theme.incorrect.options = incorrectOptions.map(([_, e]) => ({ emoji: shuffle(e)[0], label: " " }));
     }
   }
   return {
@@ -55,7 +56,9 @@ export function createPrompt(theme: (typeof themes)[keyof typeof themes], incorr
         const isCorrect = i < correct.length;
         const { options } = theme[isCorrect ? "correct" : "incorrect"];
         const [{ emoji, label } = { emoji: "❓", label: "Unknown option" }] = Array.isArray(options)
-          ? shuffle(options)
+          ? "options" in theme && isCorrect
+            ? options.slice(i)
+            : shuffle(options)
           : [randomOption(theme.correct.options.join(""))];
         return {
           id: "1",
