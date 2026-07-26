@@ -8,6 +8,7 @@ import { numberFormatter } from "../utils";
 import CreateButton from "./create-button";
 import { Settings } from "./settings";
 import Stage from "./stage";
+import TriggerRole from "./trigger-role";
 
 export type CreateStatus = {
   createdIncorrect: boolean;
@@ -19,6 +20,10 @@ export type CreateStatus = {
 export default function ConfigurationPage({ guild }: { guild: string }) {
   const { current: $createStatus } = useRef(atom<CreateStatus>(null));
   const stagesQuery = useQuery({ queryKey: ["stages", guild], queryFn: () => cache.listStages(guild) });
+  const triggerRolesQuery = useQuery({
+    queryKey: ["trigger-roles", guild],
+    queryFn: () => cache.listTriggerRoles(guild),
+  });
   const createStatus = useStore($createStatus);
   const numStages = stagesQuery.data?.length ?? 0;
   return (
@@ -26,7 +31,7 @@ export default function ConfigurationPage({ guild }: { guild: string }) {
       {!!stagesQuery.data?.length && (
         <ActionRow>
           {stagesQuery.data.map((s) => (
-            <Stage key={s.id} guild={guild} stage={s} onSuccess={() => stagesQuery.refetch()} />
+            <Stage key={s.id} stage={s} onSuccess={() => stagesQuery.refetch()} />
           ))}
         </ActionRow>
       )}
@@ -65,6 +70,16 @@ export default function ConfigurationPage({ guild }: { guild: string }) {
         {stagesQuery.isError && "-# Error fetching stages"}
       </Section>
       <Separator />
+      {!!triggerRolesQuery.data?.length && (
+        <>
+          <ActionRow>
+            {triggerRolesQuery.data.map((r) => (
+              <TriggerRole key={r.id} role={r} onSuccess={() => triggerRolesQuery.refetch()} />
+            ))}
+          </ActionRow>
+          <Separator />
+        </>
+      )}
       <ActionRow>
         <ChecksStat guild={guild} />
         <Settings guild={guild} />

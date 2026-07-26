@@ -1,9 +1,9 @@
 import { hash } from "node:crypto";
 import { createCache } from "@dressed/ws/cache";
-import { createDM, getGuild } from "dressed";
+import { createDM, getGuild, getRole } from "dressed";
 import { count, eq, sum } from "drizzle-orm";
 import { db } from "./db.ts";
-import { settingsTable, stagesTable } from "./schema.ts";
+import { settingsTable, stagesTable, triggerRolesTable } from "./schema.ts";
 
 export const resolveKey = (key: string, args: string[]) => `${key.toString()}:${hash("sha1", JSON.stringify(args))}`;
 
@@ -17,6 +17,7 @@ export const startCache = (redis: {
     {
       createDM,
       getGuild,
+      getRole,
       async getSettings(guild: string) {
         const res = await db.select().from(settingsTable).where(eq(settingsTable.id, guild)).limit(1);
         return res[0] ?? null;
@@ -35,6 +36,8 @@ export const startCache = (redis: {
         };
       },
       listStages: (guild: string) => db.select().from(stagesTable).where(eq(stagesTable.guild, guild)),
+      listTriggerRoles: (guild: string) =>
+        db.select().from(triggerRolesTable).where(eq(triggerRolesTable.guild, guild)),
     },
     {
       logic: {

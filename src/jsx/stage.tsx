@@ -10,11 +10,9 @@ import { findPromptIndex, numberFormatter, transformEmojiKeys } from "../utils";
 import { useToast } from "./toasts";
 
 export default function Stage({
-  guild,
   stage,
   onSuccess,
 }: {
-  guild: string;
   stage: typeof stagesTable.$inferSelect;
   onSuccess: CallableFunction;
 }) {
@@ -46,7 +44,7 @@ This challenge has caught ${numberFormatter.format(Number(stage.fails))} user${s
               <Checkbox custom_id="delete" />
             </Label>
           </>,
-          (i) => i.getField("delete")?.checkbox() === true && deleteMutation.mutate({ guild, stage, toast }),
+          (i) => i.getField("delete", true) && deleteMutation.mutate({ stage, toast }),
         );
       }}
       disabled={deleteMutation.isPending}
@@ -55,15 +53,13 @@ This challenge has caught ${numberFormatter.format(Number(stage.fails))} user${s
 }
 
 async function deleteStage({
-  guild,
   stage,
   toast,
 }: {
-  guild: string;
   stage: typeof stagesTable.$inferSelect;
   toast: ReturnType<typeof useToast>;
 }) {
-  const onboarding = await getOnboarding(guild);
+  const onboarding = await getOnboarding(stage.guild);
 
   const index = findPromptIndex(onboarding.prompts, stage);
   if (index !== -1) {
@@ -71,13 +67,13 @@ async function deleteStage({
   }
 
   await Promise.allSettled([
-    modifyOnboarding(guild, { prompts: transformEmojiKeys(onboarding.prompts) }).catch(() =>
+    modifyOnboarding(stage.guild, { prompts: transformEmojiKeys(onboarding.prompts) }).catch(() =>
       toast({ type: "warn", message: "Couldn't remove the onboarding stage" }),
     ),
     (async () => {
       for (const role of stage.correct.concat(stage.incorrect)) {
         try {
-          await deleteRole(guild, role);
+          await deleteRole(stage.guild, role);
         } catch {
           toast({ type: "warn", message: `There was a problem deleting one of the roles (<@&${role}>)` });
         }
@@ -86,7 +82,7 @@ async function deleteStage({
   ]);
 
   return Promise.all([
-    db.delete(stagesTable).where(and(eq(stagesTable.guild, guild), eq(stagesTable.id, stage.id))),
-    cache.listStages.clear(guild),
+    db.delete(stagesTable).where(and(eq(stagesTable.guild, stage.guild), eq(stagesTable.id, stage.id))),
+    cache.listStages.clear(stage.guild),
   ]);
 }

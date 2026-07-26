@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import themes from "../themes.json" with { type: "json" };
 
 export const settingsTable = sqliteTable("settings", {
@@ -18,8 +18,21 @@ export const stagesTable = sqliteTable("stages", {
   theme: text("theme", { enum: Object.keys(themes) as [keyof typeof themes] }).notNull(),
   incorrect: text().notNull(),
   correct: text("correct", { mode: "json" }).$type<string[]>().notNull(),
+  fails: integer().default(0).notNull(),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .$defaultFn(() => new Date())
     .notNull(),
-  fails: integer().default(0).notNull(),
 });
+
+export const triggerRolesTable = sqliteTable(
+  "trigger_roles",
+  {
+    id: text().notNull(),
+    guild: text().notNull(),
+    fails: integer().default(0).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .$defaultFn(() => new Date())
+      .notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.id, table.guild] })],
+);
