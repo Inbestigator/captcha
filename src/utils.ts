@@ -32,9 +32,16 @@ export function createPrompt(theme: (typeof themes)[keyof typeof themes], incorr
     if (!correctOption) throw new Error("Couldn't determine a correct option");
     theme.challenge = theme.challenge.replaceAll("{{correct}}", correctOption[0]);
     // @ts-expect-error
-    theme.correct.options = [{ emoji: correctOption[1], label: " " }];
-    // @ts-expect-error
-    theme.incorrect.options = incorrectOptions.map(([_, e]) => ({ emoji: e, label: " " }));
+    theme.correct.options = Array.from({ length: theme.correct.count }, (_, i) => {
+      const emoji = correctOption[1][i] ?? shuffle(correctOption[1])[0];
+      const incorrectIndex = theme.incorrect.options.findIndex((o) => o.emoji === emoji);
+      if (incorrectIndex > -1) theme.incorrect.options.splice(incorrectIndex, 1);
+      return { emoji, label: " " };
+    });
+    if (Array.isArray(theme.incorrect.options) && theme.incorrect.options.length === 0) {
+      // @ts-expect-error
+      theme.incorrect.options = incorrectOptions.map(([_, e]) => ({ emoji: e, label: " " }));
+    }
   }
   return {
     id: "1",

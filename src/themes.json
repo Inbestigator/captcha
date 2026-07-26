@@ -2,9 +2,16 @@
   "Traffic lights": {
     "icon": "🚦",
     "challenge": "Select all traffic lights",
-    "strength": "Moderate",
+    "strength": "Weak",
     "correct": { "count": 3, "options": [{ "emoji": "🚦", "label": "Traffic light" }] },
     "incorrect": { "count": 5, "options": "" }
+  },
+  "Checkmarks": {
+    "icon": "✅",
+    "challenge": "Select all checkmarks",
+    "strength": "Weak",
+    "correct": { "count": 3, "options": [{ "emoji": "✅", "label": "Correct" }] },
+    "incorrect": { "count": 5, "options": [{ "emoji": "❌", "label": "Incorrect" }] }
   },
   "Scooters": {
     "icon": "🛵",
@@ -62,24 +69,17 @@
       "options": "🏍️🛵🚲🛴🛹🛺🚂🚆🚇🚊🚉🚋🚃🚄🚅🚈🚝🚞🚟🚠🚡🚀🛸✈️🛫🛬🚁🚤🛥️⛴️🛳️🚢⛵🛶🚣"
     }
   },
-  "Checkmarks": {
-    "icon": "✅",
-    "challenge": "Select all checkmarks",
-    "strength": "Weak",
-    "correct": { "count": 3, "options": [{ "emoji": "✅", "label": "Correct" }] },
-    "incorrect": { "count": 5, "options": [{ "emoji": "❌", "label": "Incorrect" }] }
-  },
   "Signs": {
     "icon": "🛑",
     "challenge": "Select all {{correct}} signs",
     "strength": "Strong",
     "options": {
-      "stop": "🛑",
-      "no entry": "⛔",
-      "no smoking": "🚭",
-      "warning": "⚠️",
-      "children crossing": "🚸",
-      "bathroom": "🚻"
+      "stop": ["🛑"],
+      "no entry": ["⛔"],
+      "no smoking": ["🚭"],
+      "warning": ["⚠️"],
+      "children crossing": ["🚸"],
+      "bathroom": ["🚻"]
     },
     "correct": { "count": 2, "options": [] },
     "incorrect": { "count": 6, "options": [] }
@@ -111,6 +111,54 @@
         { "emoji": "🚢", "label": "Ship" },
         { "emoji": "🛵", "label": "Scooter" },
         { "emoji": "🏰", "label": "Castle" }
+      ]
+    }
+  },
+  "Spelling test": {
+    "icon": "🔤",
+    "challenge": "Spell {{correct}}",
+    "strength": "Strong",
+    "options": {
+      "🐜": ["🇦", "🇳", "🇹"],
+      "🦇": ["🇧", "🇦", "🇹"],
+      "🐝": ["🇧", "🇪", "🇪"],
+      "🐛": ["🇧", "🇺", "🇬"],
+      "🚗": ["🇨", "🇦", "🇷"],
+      "🐈": ["🇨", "🇦", "🇹"],
+      "🐕": ["🇩", "🇴", "🇬"],
+      "👁️": ["🇪", "🇾", "🇪"],
+      "🦊": ["🇫", "🇴", "🇽"]
+    },
+    "correct": { "count": 3, "options": [] },
+    "incorrect": {
+      "count": 5,
+      "options": [
+        { "emoji": "🇦", "label": " " },
+        { "emoji": "🇧", "label": " " },
+        { "emoji": "🇨", "label": " " },
+        { "emoji": "🇩", "label": " " },
+        { "emoji": "🇪", "label": " " },
+        { "emoji": "🇫", "label": " " },
+        { "emoji": "🇬", "label": " " },
+        { "emoji": "🇭", "label": " " },
+        { "emoji": "🇮", "label": " " },
+        { "emoji": "🇯", "label": " " },
+        { "emoji": "🇰", "label": " " },
+        { "emoji": "🇱", "label": " " },
+        { "emoji": "🇲", "label": " " },
+        { "emoji": "🇳", "label": " " },
+        { "emoji": "🇴", "label": " " },
+        { "emoji": "🇵", "label": " " },
+        { "emoji": "🇶", "label": " " },
+        { "emoji": "🇷", "label": " " },
+        { "emoji": "🇸", "label": " " },
+        { "emoji": "🇹", "label": " " },
+        { "emoji": "🇺", "label": " " },
+        { "emoji": "🇻", "label": " " },
+        { "emoji": "🇼", "label": " " },
+        { "emoji": "🇽", "label": " " },
+        { "emoji": "🇾", "label": " " },
+        { "emoji": "🇿", "label": " " }
       ]
     }
   }
