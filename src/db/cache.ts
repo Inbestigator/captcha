@@ -1,7 +1,7 @@
 import { hash } from "node:crypto";
 import { createCache } from "@dressed/ws/cache";
 import { createDM, getGuild, getRole } from "dressed";
-import { count, eq, sum } from "drizzle-orm";
+import { avg, count, eq } from "drizzle-orm";
 import { db } from "./db.ts";
 import { settingsTable, stagesTable, triggerRolesTable } from "./schema.ts";
 
@@ -23,16 +23,19 @@ export const startCache = (redis: {
         return res[0] ?? null;
       },
       async getStats() {
-        const stagesPromise = db.select({ challenges: count(), fails: sum(stagesTable.fails) }).from(stagesTable);
+        const dbPromise = db
+          .select({ fails: avg(stagesTable.fails), challenges: count() })
+          .from(stagesTable)
+          .groupBy(stagesTable.guild);
         const keys = await redis.keys("check:*");
-        const [[stages], ...checks] = await Promise.all([
-          await stagesPromise,
+        const [guilds, ...checks] = await Promise.all([
+          dbPromise,
           ...keys.map((key) => redis.get(key).then((v) => Number(v ?? 0))),
         ]);
         return {
-          challenges: Number(stages?.challenges ?? 0),
+          challenges: guilds.reduce((p, c) => p + c.challenges, 0),
           checks: checks.reduce((p, c) => p + c, 0),
-          fails: Number(stages?.fails ?? 0),
+          fails: guilds.reduce((p, c) => p + Number.parseInt(c.fails ?? "0", 10), 0),
         };
       },
       listStages: (guild: string) => db.select().from(stagesTable).where(eq(stagesTable.guild, guild)),

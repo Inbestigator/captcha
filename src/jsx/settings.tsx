@@ -4,7 +4,7 @@ import { PermissionFlagsBits, SelectMenuDefaultValueType } from "discord-api-typ
 import { cache, db } from "../db";
 import { settingsTable } from "../db/schema";
 import { showModal } from "../modal";
-import { cycleRatelimit } from "../utils";
+import { cycleRatelimit, validatePerms } from "../utils";
 import { useToast } from "./toasts";
 
 export function Settings({ guild }: { guild: string }) {
@@ -105,7 +105,7 @@ export function Settings({ guild }: { guild: string }) {
             if (action) {
               validatePerms(
                 { you: i.member!.permissions, I: i.app_permissions },
-                `the ${action} action`,
+                `add the ${action} action`,
                 [actionPerms[action]],
                 () => (action = undefined),
                 toast,
@@ -115,7 +115,7 @@ export function Settings({ guild }: { guild: string }) {
             if (logChannel) {
               validatePerms(
                 { you: logChannel.permissions, I: logChannel.app_permissions ?? "" },
-                `the log channel (<#${logChannel?.id}>)`,
+                `add the log channel (<#${logChannel?.id}>)`,
                 [
                   [PermissionFlagsBits.ViewChannel, "View Channel"],
                   [PermissionFlagsBits.SendMessages, "Send Messages"],
@@ -138,27 +138,4 @@ export function Settings({ guild }: { guild: string }) {
       }
     />
   );
-}
-
-function validatePerms(
-  owners: Record<"you" | "I", string>,
-  subject: string,
-  checks: Readonly<[bigint, string]>[],
-  onFail: () => void,
-  toast: ReturnType<typeof useToast>,
-) {
-  for (const [owner, perms] of Object.entries(owners) as ["you" | "I", string][]) {
-    const permissionBits = BigInt(perms);
-    const missing = checks.filter(([bit]) => (permissionBits & bit) === 0n).map(([, name]) => `\`${name}\``);
-
-    if (!missing.length) continue;
-
-    toast({
-      type: "warn",
-      message: `Cannot add ${subject} because ${owner} don't have the correct permissions (${new Intl.ListFormat().format(missing)} needed)`,
-    });
-
-    onFail();
-    return;
-  }
 }

@@ -4,6 +4,7 @@ import shortcodes from "emojibase-data/en/shortcodes/github.json";
 import { shuffle } from "fast-shuffle";
 import { redis } from "./db";
 import type { stagesTable } from "./db/schema";
+import type { useToast } from "./jsx/toasts";
 import type themes from "./themes.json";
 
 export function transformEmojiKeys(prompts: APIGuildOnboardingPrompt[]) {
@@ -109,4 +110,27 @@ export function randomOption(exclude = "") {
       .join(""),
     label: name[0]?.toUpperCase() + name.slice(1).split("_").join(" "),
   };
+}
+
+export function validatePerms(
+  owners: Record<"you" | "I", string>,
+  action: string,
+  checks: Readonly<[bigint, string]>[],
+  onFail: () => void,
+  toast: ReturnType<typeof useToast>,
+) {
+  for (const [owner, perms] of Object.entries(owners) as ["you" | "I", string][]) {
+    const permissionBits = BigInt(perms);
+    const missing = checks.filter(([bit]) => (permissionBits & bit) === 0n).map(([, name]) => `\`${name}\``);
+
+    if (!missing.length) continue;
+
+    toast({
+      type: "warn",
+      message: `Cannot ${action} because ${owner} don't have the correct permissions (${new Intl.ListFormat().format(missing)} needed)`,
+    });
+
+    onFail();
+    return;
+  }
 }

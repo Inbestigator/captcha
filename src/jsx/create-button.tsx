@@ -1,13 +1,13 @@
 import { Button, Label, RadioGroup, RadioGroupOption } from "@dressed/react";
 import { useMutation } from "@tanstack/react-query";
-import { GuildFeature } from "discord-api-types/v10";
+import { GuildFeature, PermissionFlagsBits } from "discord-api-types/v10";
 import { createRole, deleteRole, getOnboarding, modifyOnboarding } from "dressed";
 import type { WritableAtom } from "nanostores";
 import { cache, db } from "../db";
 import { stagesTable } from "../db/schema";
 import { showModal } from "../modal";
 import themes from "../themes.json";
-import { createPrompt, cycleRatelimit, findPromptIndex, transformEmojiKeys } from "../utils";
+import { createPrompt, cycleRatelimit, findPromptIndex, transformEmojiKeys, validatePerms } from "../utils";
 import type { CreateStatus } from "./config-page";
 import { useToast } from "./toasts";
 
@@ -63,14 +63,29 @@ export default function CreateButton({
             These roles will be assigned during the
             [onboarding](https://support.discord.com/hc/en-us/articles/11074987197975) process for new members.
           </>,
-          (i) =>
-            createMutation.mutate({
-              stages,
-              guild,
-              theme: i.getField("theme", true).radioGroup() as keyof typeof themes,
-              $createStatus,
-              toast,
-            }),
+          (i) => {
+            try {
+              validatePerms(
+                { you: i.member!.permissions, I: i.app_permissions },
+                "create a new stage",
+                [
+                  [PermissionFlagsBits.ManageRoles, "Manage Roles"],
+                  [PermissionFlagsBits.ManageGuild, "Manage Guild"],
+                ],
+                () => {
+                  throw null;
+                },
+                toast,
+              );
+              createMutation.mutate({
+                stages,
+                guild,
+                theme: i.getField("theme", true).radioGroup() as keyof typeof themes,
+                $createStatus,
+                toast,
+              });
+            } catch {}
+          },
         );
       }}
       style={createMutation.isError || createMutation.isPending ? "Secondary" : undefined}

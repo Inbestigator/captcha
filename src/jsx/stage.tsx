@@ -1,12 +1,13 @@
 import { Button, Checkbox, Label } from "@dressed/react";
 import { useMutation } from "@tanstack/react-query";
+import { PermissionFlagsBits } from "discord-api-types/v10";
 import { deleteRole, getOnboarding, modifyOnboarding } from "dressed";
 import { and, eq } from "drizzle-orm";
 import { cache, db } from "../db";
 import { stagesTable } from "../db/schema";
 import { showModal } from "../modal";
 import themes from "../themes.json";
-import { findPromptIndex, numberFormatter, transformEmojiKeys } from "../utils";
+import { findPromptIndex, numberFormatter, transformEmojiKeys, validatePerms } from "../utils";
 import { useToast } from "./toasts";
 
 export default function Stage({
@@ -44,7 +45,25 @@ This challenge has caught ${numberFormatter.format(Number(stage.fails))} user${s
               <Checkbox custom_id="delete" />
             </Label>
           </>,
-          (i) => i.getField("delete", true) && deleteMutation.mutate({ stage, toast }),
+          (i) => {
+            if (i.getField("delete", true)) {
+              try {
+                validatePerms(
+                  { you: i.member!.permissions, I: i.app_permissions },
+                  "remove the stage",
+                  [
+                    [PermissionFlagsBits.ManageRoles, "Manage Roles"],
+                    [PermissionFlagsBits.ManageGuild, "Manage Guild"],
+                  ],
+                  () => {
+                    throw null;
+                  },
+                  toast,
+                );
+                deleteMutation.mutate({ stage, toast });
+              } catch {}
+            }
+          },
         );
       }}
       disabled={deleteMutation.isPending}
