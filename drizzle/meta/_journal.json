@@ -15,6 +15,13 @@
       "when": 1785024894855,
       "tag": "0001_cheerful_cobalt_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1785753305957,
+      "tag": "0002_empty_lord_hawal",
+      "breakpoints": true
     }
   ]
 }

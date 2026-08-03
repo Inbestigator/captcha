@@ -36,3 +36,14 @@ export const triggerRolesTable = sqliteTable(
   },
   (table) => [primaryKey({ columns: [table.id, table.guild] })],
 );
+
+export const checksTable = sqliteTable("checks", {
+  id: text().$defaultFn(randomUUID).primaryKey(),
+  user: text().notNull(),
+  guild: text().notNull(),
+  scores: text("scores", { mode: "json" }).$type<{ id: string; under: number; over: boolean }[]>().notNull(),
+  failed: integer().notNull(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .$defaultFn(() => new Date())
+    .notNull(),
+});

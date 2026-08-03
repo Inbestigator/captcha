@@ -1,9 +1,9 @@
 import { hash } from "node:crypto";
 import { createCache } from "@dressed/ws/cache";
 import { createDM, getGuild, getRole } from "dressed";
-import { avg, count, eq } from "drizzle-orm";
+import { count, eq, sql } from "drizzle-orm";
 import { db } from "./db.ts";
-import { settingsTable, stagesTable, triggerRolesTable } from "./schema.ts";
+import { checksTable, settingsTable, stagesTable, triggerRolesTable } from "./schema.ts";
 
 export const resolveKey = (key: string, args: string[]) => `${key.toString()}:${hash("sha1", JSON.stringify(args))}`;
 
@@ -18,25 +18,25 @@ export const startCache = (redis: {
       createDM,
       getGuild,
       getRole,
+      async getGuildChecks(guild: string) {
+        const [{ challenges = 0 } = {}] = await db
+          .select({ challenges: count() })
+          .from(checksTable)
+          .where(eq(checksTable.guild, guild));
+        return challenges;
+      },
       async getSettings(guild: string) {
         const res = await db.select().from(settingsTable).where(eq(settingsTable.id, guild)).limit(1);
         return res[0] ?? null;
       },
       async getStats() {
-        const dbPromise = db
-          .select({ fails: avg(stagesTable.fails), challenges: count() })
-          .from(stagesTable)
-          .groupBy(stagesTable.guild);
-        const keys = await redis.keys("check:*");
-        const [guilds, ...checks] = await Promise.all([
-          dbPromise,
-          ...keys.map((key) => redis.get(key).then((v) => Number(v ?? 0))),
+        const [[{ challenges = 0 } = {}], [{ checks = 0, fails = 0 } = {}]] = await db.batch([
+          db.select({ challenges: count() }).from(stagesTable),
+          db
+            .select({ fails: sql<number>`coalesce(sum(${checksTable.failed} > 0), 0)`, checks: count() })
+            .from(checksTable),
         ]);
-        return {
-          challenges: guilds.reduce((p, c) => p + c.challenges, 0),
-          checks: checks.reduce((p, c) => p + c, 0),
-          fails: guilds.reduce((p, c) => p + Number.parseInt(c.fails ?? "0", 10), 0),
-        };
+        return { challenges, checks, fails };
       },
       listStages: (guild: string) => db.select().from(stagesTable).where(eq(stagesTable.guild, guild)),
       listTriggerRoles: (guild: string) =>

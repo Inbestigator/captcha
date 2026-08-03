@@ -6,8 +6,8 @@ import { eq, inArray, sql } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 import { shuffle } from "fast-shuffle";
 import { type ReactNode, Suspense } from "react";
-import { cache, db, redis } from "../db";
-import { stagesTable, triggerRolesTable } from "../db/schema";
+import { cache, db } from "../db";
+import { checksTable, stagesTable, triggerRolesTable } from "../db/schema";
 import { Toast } from "../jsx/toasts";
 import { UpsellRow } from "../jsx/upsells";
 import themes from "../themes.json";
@@ -37,16 +37,28 @@ export default async function (member: Event<"GuildMemberUpdate">) {
 
   if (!stages.length || !checkedRoles.some((role) => member.roles.includes(role))) return;
 
-  const failedStages = stages.filter(
-    (stage) => member.roles.includes(stage.incorrect) || stage.correct.some((c) => !member.roles.includes(c)),
-  );
-  const failedTriggerRoles = triggerRoles.filter((role) => member.roles.includes(role.id));
+  const scores = stages.map((stage) => ({
+    id: stage.id,
+    under: stage.correct.filter((c) => !member.roles.includes(c)).length,
+    over: member.roles.includes(stage.incorrect),
+  }));
+  const triggerScores = triggerRoles.map((role) => ({ id: role.id, under: 0, over: member.roles.includes(role.id) }));
+  const failedStages = scores.filter((s) => s.over || s.under);
+  const failedTriggerRoles = triggerScores.filter((s) => s.over);
   const failedChecks = failedStages.length + failedTriggerRoles.length;
-  const incrPromise = redis.incr(`check:${member.guild_id}`);
+  const insertCheckPromise = db.insert(checksTable).values({
+    guild: member.guild_id,
+    user: member.user.id,
+    failed: failedChecks,
+    scores: scores.concat(triggerScores),
+  });
   const filteredRoles = member.roles.filter((id) => !checkedRoles.includes(id));
 
   if (failedChecks === 0) {
-    await Promise.allSettled([modifyMember(member.guild_id, member.user.id, { roles: filteredRoles }), incrPromise]);
+    await Promise.allSettled([
+      modifyMember(member.guild_id, member.user.id, { roles: filteredRoles }),
+      insertCheckPromise,
+    ]);
     return;
   }
 
@@ -108,8 +120,8 @@ export default async function (member: Event<"GuildMemberUpdate">) {
   ].filter(Boolean) as string[];
 
   await Promise.allSettled([
-    incrPromise,
     db.batch([
+      insertCheckPromise,
       db
         .update(stagesTable)
         .set({ fails: sql`${stagesTable.fails} + 1` })
@@ -129,7 +141,12 @@ export default async function (member: Event<"GuildMemberUpdate">) {
           ),
         ),
     ]),
-    settings?.refresh && refreshStages(member.guild_id, failedStages, settings.refresh === "theme"),
+    settings?.refresh &&
+      refreshStages(
+        member.guild_id,
+        failedStages.map((f) => stages.find((s) => s.id === f.id)!),
+        settings.refresh === "theme",
+      ),
     settings?.logs &&
       createMessage(
         settings.logs,

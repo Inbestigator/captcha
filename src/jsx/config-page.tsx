@@ -89,7 +89,7 @@ export default function ConfigurationPage({ guild }: { guild: string }) {
 }
 
 function ChecksStat({ guild }: { guild: string }) {
-  const checksQuery = useQuery({ queryKey: ["checks", guild], queryFn: () => redis.get(`check:${guild}`) });
+  const checksQuery = useQuery({ queryKey: ["checks", guild], queryFn: () => cache.getGuildChecks(guild) });
   return (
     <Button
       custom_id="checks"
