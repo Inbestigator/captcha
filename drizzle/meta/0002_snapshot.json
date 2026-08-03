@@ -199,10 +199,7 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "trigger_roles_id_guild_pk": {
-          "columns": [
-            "id",
-            "guild"
-          ],
+          "columns": ["id", "guild"],
           "name": "trigger_roles_id_guild_pk"
         }
       },

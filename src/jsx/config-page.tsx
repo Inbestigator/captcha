@@ -3,7 +3,7 @@ import { useStore } from "@nanostores/react";
 import { useQuery } from "@tanstack/react-query";
 import { atom } from "nanostores";
 import { useRef } from "react";
-import { cache, redis } from "../db";
+import { cache } from "../db";
 import { numberFormatter } from "../utils";
 import CreateButton from "./create-button";
 import { Settings } from "./settings";

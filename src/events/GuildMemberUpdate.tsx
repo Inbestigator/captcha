@@ -5,6 +5,7 @@ import { getOnboarding, modifyMember, modifyOnboarding, removeMember } from "dre
 import { eq, inArray, sql } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 import { shuffle } from "fast-shuffle";
+import pluralize from "pluralize";
 import { type ReactNode, Suspense } from "react";
 import { cache, db } from "../db";
 import { checksTable, stagesTable, triggerRolesTable } from "../db/schema";
@@ -114,9 +115,8 @@ export default async function (member: Event<"GuildMemberUpdate">) {
   }
 
   const failedTexts = [
-    !!failedStages.length && `${failedStages.length} stage${failedStages.length === 1 ? "" : "s"}`,
-    !!failedTriggerRoles.length &&
-      `${failedTriggerRoles.length} trigger role${failedTriggerRoles.length === 1 ? "" : "s"}`,
+    !!failedStages.length && pluralize("stage", failedStages.length, true),
+    !!failedTriggerRoles.length && pluralize("trigger role", failedTriggerRoles.length, true),
   ].filter(Boolean) as string[];
 
   await Promise.allSettled([
