@@ -2,6 +2,7 @@ import { ActionRow, Button, Container, Section, Separator } from "@dressed/react
 import { useStore } from "@nanostores/react";
 import { useQuery } from "@tanstack/react-query";
 import { atom } from "nanostores";
+import pluralize from "pluralize";
 import { useRef } from "react";
 import { cache } from "../db";
 import { numberFormatter } from "../utils";
@@ -97,7 +98,7 @@ function ChecksStat({ guild }: { guild: string }) {
       label={
         checksQuery.isError
           ? "❓"
-          : `${checksQuery.isPending ? "…" : numberFormatter.format(Number(checksQuery.data))} verifications`
+          : `${checksQuery.isPending ? "…" : numberFormatter.format(checksQuery.data)} ${pluralize("verification", checksQuery.data)}`
       }
       style="Secondary"
       disabled
